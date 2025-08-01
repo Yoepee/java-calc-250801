@@ -8,17 +8,19 @@ public class Calc {
     private static List<String> list;
 
     public static int run(String expr) {
-        getValue(expr);
+        list = parse(expr);
         System.out.println(list);
-        while(list.size() > 1){
+        while (list.size() > 1) {
             list = getNextList(list);
         }
 
         return list.stream().mapToInt(Integer::parseInt).sum();
     }
 
-    private static void getValue(String expr) {
-        list = Arrays.stream(expr.replaceAll("\\(", "( ").replaceAll("\\)", " )").split(" "))
+    private static List<String> parse(String expr) {
+        return Arrays.stream(expr.replaceAll("\\(", "( ")
+                .replaceAll("\\)", " )")
+                .split(" "))
                 .map(String::trim)
                 .filter(e -> !e.isEmpty())
                 .toList();
@@ -34,7 +36,7 @@ public class Calc {
         int isOpened = 0;
         boolean isMinusOpen = false;
         List<String> openList = new ArrayList<>();
-        for(String item : list){
+        for (String item : list) {
             String value = null;
             switch (item) {
                 case "-(":
@@ -63,7 +65,7 @@ public class Calc {
             } else {
                 if (isOpened == 0 && type.equals(")")) {
                     System.out.println(openList);
-                    while(openList.size() > 1){
+                    while (openList.size() > 1) {
                         openList = getNextList(openList);
                     }
                     if (!prevType.equals("*")) {
