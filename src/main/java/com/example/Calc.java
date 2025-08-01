@@ -7,7 +7,7 @@ import java.util.List;
 public class Calc {
     public static int run(String expr) {
         List<String> list = parse(expr);
-        while (list.contains("(") || list.contains("-(")) {
+        while (list.contains(")")) {
             list = getNextList(list);
         }
 
@@ -16,6 +16,7 @@ public class Calc {
 
     private static List<String> parse(String expr) {
         return Arrays.stream(expr.replaceAll("\\(", "( ")
+                        .replaceAll("-\\(", "-1 * (")
                         .replaceAll("\\)", " )")
                         .split(" "))
                 .map(String::trim)
@@ -26,20 +27,16 @@ public class Calc {
     private static List<String> getNextList(List<String> list) {
         List<String> newList = new ArrayList<>();
         int openIndex = -1;
-        boolean isMinusStart = false;
         for (int i = 0; i < list.size(); i++) {
             String current = list.get(i);
             if (current.equals("(")) {
                 openIndex = i;
-            } else if (current.equals("-(")){
-                openIndex = i;
-                isMinusStart = true;
             } else if (current.equals(")")) {
                 List<String> openList = list.subList(openIndex + 1, i);
                 int value = calc(openList);
                 newList.addAll(list.subList(0, openIndex));
-                newList.add(String.valueOf(value * (isMinusStart ? -1 : 1)));
-                newList.addAll(list.subList(i+1, list.size()));
+                newList.add(String.valueOf(value));
+                newList.addAll(list.subList(i + 1, list.size()));
                 break;
             }
         }
@@ -62,8 +59,19 @@ public class Calc {
 
         int result = Integer.parseInt(newList.get(0));
         for (int i = 1; i < newList.size(); i += 2) {
-            if (newList.get(i).equals("+")) result = plus(result, Integer.parseInt(newList.get(i + 1)));
-            else result = minus(result, Integer.parseInt(newList.get(i + 1)));
+            result = process(newList.get(i), result, Integer.parseInt(newList.get(i + 1)));
+        }
+
+        return result;
+    }
+
+    private static int process(String type, int a, int b) {
+        int result;
+        switch (type) {
+            case "+" -> result = plus(a, b);
+            case "-" -> result = minus(a, b);
+            case "*" -> result = multiply(a, b);
+            default -> throw new IllegalArgumentException("invalid type: " + type);
         }
 
         return result;
